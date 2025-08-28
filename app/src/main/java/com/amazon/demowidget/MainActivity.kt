@@ -1,5 +1,6 @@
 package com.amazon.demowidget
 
+import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN
 import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD
 import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_SEARCHBOX
@@ -16,10 +17,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.lifecycleScope
 import com.amazon.demowidget.ui.theme.DemoWidgetTheme
@@ -45,43 +49,46 @@ class MainActivity : ComponentActivity() {
         setContent {
             DemoWidgetTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    setUpWidget(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                        setupWidgetButton(
+                            name = "Android",
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun setUpWidget(name: String, modifier: Modifier = Modifier) {
+fun setupWidgetButton(modifier: Modifier = Modifier, name: String) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
 
-    Button(
-        onClick = {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM){
-                scope.launch {
-                    val manager = GlanceAppWidgetManager(context)
-                    manager.setWidgetPreviews(MyAppWidgetReceiver::class, intSetOf(
-                        WIDGET_CATEGORY_HOME_SCREEN
-                    ))
-                }
-            }
-        },
-        modifier = modifier
-    ) {
-        Text(text = "Set up widget for $name")
+    val isPinningSupported = remember {
+        AppWidgetManager.getInstance(context).isRequestPinAppWidgetSupported
     }
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    DemoWidgetTheme {
-        setUpWidget("Android")
+    if (isPinningSupported) {
+        Button(
+            onClick = {
+                coroutineScope.launch {
+                    GlanceAppWidgetManager(context).requestPinGlanceAppWidget(
+                        receiver = MyAppWidgetReceiver::class.java,
+                        preview = MyAppWidget(),
+                        previewState = DpSize(245.dp, 115.dp)
+                    )
+                }
+            },
+            modifier = modifier
+        ) {
+            Text(text = "Set up widget for $name")
+        }
+    } else {
+        // Không hiển thị gì hoặc có thể hiển thị thông báo nếu muốn
+        // Text("Widget pinning not supported on this device")
     }
 }
 

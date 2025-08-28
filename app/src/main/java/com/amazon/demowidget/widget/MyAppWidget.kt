@@ -33,10 +33,12 @@ class MyAppWidget: GlanceAppWidget() {
 
     override suspend fun providePreview(context: Context, widgetCategory: Int) {
         provideContent {
-            MyWidgetContent(true)
+            Text(
+                text = "🏠 Home",
+                modifier = GlanceModifier.padding(end = 12.dp)
+            )
         }
     }
-
 
     @Composable
     fun MyWidgetContent(isPreview: Boolean) {
