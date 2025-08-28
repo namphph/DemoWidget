@@ -15,6 +15,6 @@ class MyAppWidgetReceiver() : GlanceAppWidgetReceiver() {
     }
 }
 
-class MyAppWidgetReceiver2() : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget =  MyAppWidget()
-}
+//class MyAppWidgetReceiver2() : GlanceAppWidgetReceiver() {
+//    override val glanceAppWidget: GlanceAppWidget =  MyAppWidget()
+//}

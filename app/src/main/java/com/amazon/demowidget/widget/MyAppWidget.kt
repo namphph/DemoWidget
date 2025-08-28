@@ -2,20 +2,29 @@ package com.amazon.demowidget.widget
 
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
-import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.appwidget.updateAll
+import androidx.glance.appwidget.updateIf
+import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -25,14 +34,16 @@ import androidx.glance.text.Text
 import com.amazon.demowidget.MainActivity
 import com.amazon.demowidget.R
 
-class MyAppWidget: GlanceAppWidget() {
+val KEY_MODE = booleanPreferencesKey("mode")
 
+class MyAppWidget: GlanceAppWidget() {
     override suspend fun provideGlance(
         context: Context,
         id: GlanceId
     ) {
+
         provideContent {
-            MyWidgetContent(false)
+            MyWidgetContent(false, context)
         }
     }
 
@@ -61,7 +72,10 @@ class MyAppWidget: GlanceAppWidget() {
     }
 
     @Composable
-    fun MyWidgetContent(isPreview: Boolean) {
+    fun MyWidgetContent(isPreview: Boolean, context: Context) {
+//        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+//        val isDarkMode = prefs.getBoolean("dark_mode", false)
+        var isDarkMode = currentState(KEY_MODE)?:false
         Column(
             modifier = GlanceModifier.fillMaxSize(),
             verticalAlignment = Alignment.Top,
@@ -85,13 +99,14 @@ class MyAppWidget: GlanceAppWidget() {
                         text = "🏢 Work"
                     )
                 } else {
+                    Log.d("112233","Vao day")
                     Button(
                         text = "🏠 Home",
                         onClick = actionStartActivity<MainActivity>(),
                     )
                     Button(
-                        text = "🏢 Work",
-                        onClick = actionStartActivity<MainActivity>()
+                        text = if (isDarkMode) "🌙 Dark Mode" else "☀️ Light Mode",
+                        onClick = actionRunCallback<ToggleThemeAction>()
                     )
                 }
             }
@@ -105,3 +120,15 @@ private fun getErrorIntent(context: Context, throwable: Throwable): PendingInten
     return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 }
 
+class ToggleThemeAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters
+    ) {
+        updateAppWidgetState(context, glanceId) { prefs ->
+            prefs[KEY_MODE] = prefs[KEY_MODE] != true
+        }
+        MyAppWidget().update(context, glanceId)
+    }
+}
