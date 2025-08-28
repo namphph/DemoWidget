@@ -2,8 +2,6 @@ package com.amazon.demowidget
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN
-import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD
-import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_SEARCHBOX
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -21,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.glance.appwidget.GlanceAppWidgetManager

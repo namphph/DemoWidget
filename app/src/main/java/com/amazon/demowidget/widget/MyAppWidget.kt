@@ -1,7 +1,11 @@
 package com.amazon.demowidget.widget
 
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo.WIDGET_CATEGORY_HOME_SCREEN
 import android.content.Context
+import android.content.Intent
+import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -19,6 +23,7 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import androidx.glance.text.Text
 import com.amazon.demowidget.MainActivity
+import com.amazon.demowidget.R
 
 class MyAppWidget: GlanceAppWidget() {
 
@@ -38,6 +43,21 @@ class MyAppWidget: GlanceAppWidget() {
                 modifier = GlanceModifier.padding(end = 12.dp)
             )
         }
+    }
+
+    override fun onCompositionError(
+        context: Context,
+        glanceId: GlanceId,
+        appWidgetId: Int,
+        throwable: Throwable
+    ) {
+        val rv = RemoteViews(context.packageName, R.layout.error_layout)
+        rv.setTextViewText(
+            R.id.error_text_view,
+            "Error was thrown. \nThis is a custom view \nError Message: `${throwable.message}`"
+        )
+        rv.setOnClickPendingIntent(R.id.error_icon, getErrorIntent(context, throwable))
+        AppWidgetManager.getInstance(context).updateAppWidget(appWidgetId, rv)
     }
 
     @Composable
@@ -78,3 +98,10 @@ class MyAppWidget: GlanceAppWidget() {
         }
     }
 }
+
+private fun getErrorIntent(context: Context, throwable: Throwable): PendingIntent {
+    val intent = Intent(context, MyAppWidgetReceiver::class.java)
+    intent.action = "widgetError"
+    return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+}
+
